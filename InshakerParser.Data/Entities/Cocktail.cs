@@ -18,6 +18,8 @@ namespace InshakerParser.Data.Entities
 
         [BsonRepresentation(BsonType.Boolean)]
         public bool Processed { get; set; }
+        [BsonRepresentation(BsonType.Boolean)]
+        public bool Processing { get; set; }
 
         [BsonRepresentation(BsonType.String)]
         public string RelativeDetailsUrl { get; set; }

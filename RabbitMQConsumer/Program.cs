@@ -7,13 +7,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RabbitMQTools;
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 
-namespace InshakerParser
+namespace RabbitMQConsumer
 {
     class Program
     {
@@ -22,6 +19,7 @@ namespace InshakerParser
             var host = CreateHostBuilder(args);
             await host.RunConsoleAsync();
         }
+
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
             return Host.CreateDefaultBuilder(args)
@@ -35,13 +33,11 @@ namespace InshakerParser
                     .Build();
 
                     services.AddRabbitMQ(configuration);
-
                     services.Configure<MongoOptions>(configuration.GetSection(nameof(MongoOptions)));
+
                     services.AddHttpClient();
 
-                    services.AddHostedService<CocktailListWorker>();
-                    services.AddHostedService<DetailsWorker>();
-
+                    services.AddHostedService<QueueWorker>();
                     services.AddSingleton<InshakerClient>();
                     services.AddSingleton<AngleSharpParser>();
                     services.AddSingleton<MongoConnection>();
