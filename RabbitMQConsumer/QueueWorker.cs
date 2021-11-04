@@ -92,10 +92,17 @@ namespace RabbitMQConsumer
                     Title = x.Title,
                     Units = x.Unit
                 }).ToList();
+                cocktail.Receipt = detailsDto.Receipt;
+                cocktail.About = detailsDto.About;
+                cocktail.ImageUrl = InshakerClient.BaseUrl.TrimEnd('/') + detailsDto.RelativeImageUrl;
 
                 var update = Builders<Cocktail>.Update
                     .Set(x => x.Ingredients, cocktail.Ingredients)
                     .Set(x => x.Stuffs, cocktail.Stuffs)
+                    .Set(x => x.Receipt, cocktail.Receipt)
+                    .Set(x => x.About, cocktail.About)
+                    .Set(x => x.ImageUrl, cocktail.ImageUrl)
+                    .Set(x => x.Processing, false)
                     .Set(x => x.Processed, true);
 
                 await _mongoConnection.GetCollection<Cocktail>().FindOneAndUpdateAsync(x => x.Id == cocktail.Id, update);

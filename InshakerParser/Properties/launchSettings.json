@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "InshakerParser": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

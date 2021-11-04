@@ -23,6 +23,10 @@ namespace InshakerParser.Data.Entities
 
         [BsonRepresentation(BsonType.String)]
         public string RelativeDetailsUrl { get; set; }
+        [BsonRepresentation(BsonType.String)]
+        public string About { get; set; }
+        [BsonRepresentation(BsonType.String)]
+        public string ImageUrl { get; set; }
 
         public List<Ingredient> Ingredients { get; set; } = new List<Ingredient>();
 

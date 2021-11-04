@@ -49,8 +49,8 @@ namespace RabbitMQTools.WorkingQueue
         }
         public void Dispose()
         {
-            _model.Dispose();
-            _rabbitMQConnection.Dispose();
+            _model?.Dispose();
+            _rabbitMQConnection?.Dispose();
         }
         public async Task PushToQueue<T>(T payload)
         {
