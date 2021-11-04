@@ -11,7 +11,7 @@ namespace Inshaker.Client
     {
         private IHttpClientFactory _httpClientFactory;
         private readonly ILogger<InshakerClient> _logger;
-        private const string BaseUrl = "https://ru.inshaker.com/";
+        public const string BaseUrl = "https://ru.inshaker.com/";
         public InshakerClient(IHttpClientFactory httpClientFactory, 
             ILogger<InshakerClient> logger)
         {

@@ -45,15 +45,18 @@ namespace InshakerParser.Tests
         public async Task ParseOfFirstItemInPageShouldProcessSuccessfully()
         {
             var client = new InshakerClient(Mocks.GetHttpClientFactory(), Mocks.GetLogger<InshakerClient>());
-            var result = await client.GetPageAsync(0, CancellationToken.None);
+            //var result = await client.GetPageAsync(0, CancellationToken.None);
             var parser = new AngleSharpParser(Mocks.GetLogger<AngleSharpParser>());
-            var parseResult = await parser.ParseCocktailsPage(result, CancellationToken.None);
-            var firstItem = parseResult.First();
-            var detailsHtml = await client.GetDetailsAsync(firstItem.Link, CancellationToken.None);
+            //var parseResult = await parser.ParseCocktailsPage(result, CancellationToken.None);
+            //var firstItem = parseResult.First();
+            var detailsHtml = await client.GetDetailsAsync("/cocktails/699-pacha-ibitsa", CancellationToken.None);
             var details = await parser.ParseCocktailDetails(detailsHtml, CancellationToken.None);
 
             Assert.AreEqual(true, details.Ingredients.Count > 0);
             Assert.AreEqual(true, details.Stuffs.Count > 0);
+            Assert.AreEqual(true, details.Receipt.Count > 0);
+            Assert.AreEqual(true, details.About.Length > 0);
+            Assert.AreEqual(true, details.RelativeImageUrl.Length > 0);
         }
     }
 }
