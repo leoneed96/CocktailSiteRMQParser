@@ -37,13 +37,13 @@ namespace RabbitMQTools.WorkingQueue
             var model = _rabbitMQConnection.CreateModel(x =>
             {
                 _basicProperties = x.CreateBasicProperties();
-                // mark message as persistent - rmq saves it to disk
-                _basicProperties.Persistent = true;
-                // only one unacked message per worker. must be declared both in prod/cons
+                // no need to save queue after worker restart
+                _basicProperties.Persistent = false;
+                // only one unacked message per worker
                 x.BasicQos(0, 1, false);
             });
 
-            model.QueueDeclare(_mQOptions.WorkingQueueName, durable: true, exclusive: false, autoDelete: false);
+            model.QueueDeclare(_mQOptions.WorkingQueueName, durable: false, exclusive: false, autoDelete: true);
             _model = model;
             _prepared = true;
         }
