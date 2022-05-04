@@ -7,16 +7,12 @@ using System.Threading.Tasks;
 
 namespace Inshaker.Client
 {
-    public class InshakerClient
+    public class InshakerClient: WebClientBase
     {
-        private IHttpClientFactory _httpClientFactory;
-        private readonly ILogger<InshakerClient> _logger;
-        public const string BaseUrl = "https://ru.inshaker.com/";
+        public override string BaseUrl => "https://ru.inshaker.com/";
         public InshakerClient(IHttpClientFactory httpClientFactory, 
-            ILogger<InshakerClient> logger)
+            ILogger<InshakerClient> logger): base(httpClientFactory, logger)
         {
-            _httpClientFactory = httpClientFactory;
-            _logger = logger;
         }
 
         /// <summary>
@@ -25,7 +21,7 @@ namespace Inshaker.Client
         /// <returns></returns>
         public async Task<string> GetPageAsync(int page, CancellationToken ct)
         {
-            var client = _httpClientFactory.CreateClient();
+            using var client = HttpClientFactory.CreateClient();
             try
             {
                 var response = await client.GetAsync(GetPageUrl(page), ct);
@@ -35,7 +31,7 @@ namespace Inshaker.Client
                 if (!response.IsSuccessStatusCode)
                 {
 
-                    _logger.LogError("Http request for page finished with bad status code. Code={0}, Response={1}",
+                    Logger.LogError("Http request for page finished with bad status code. Code={0}, Response={1}",
                         response.StatusCode, content);
 
                     throw new Exception();
@@ -44,14 +40,14 @@ namespace Inshaker.Client
             }
             catch(Exception e)
             {
-                _logger.LogError("An unexpected error occurred while requesting page {0}. {1}", page, e.ToString());
+                Logger.LogError("An unexpected error occurred while requesting page {0}. {1}", page, e.ToString());
                 throw;
             }
         }
 
         public async Task<string> GetDetailsAsync(string relativeDetailsLink, CancellationToken ct)
         {
-            var client = _httpClientFactory.CreateClient();
+            using var client = HttpClientFactory.CreateClient();
             try
             {
                 var response = await client.GetAsync(GetDetailsUrl(relativeDetailsLink), ct);
@@ -59,7 +55,7 @@ namespace Inshaker.Client
                 if (!response.IsSuccessStatusCode)
                 {
 
-                    _logger.LogError("Http request for page finished with bad status code. Code={0}, Response={1}",
+                    Logger.LogError("Http request for page finished with bad status code. Code={0}, Response={1}",
                         response.StatusCode, content);
 
                     throw new Exception();
@@ -68,7 +64,7 @@ namespace Inshaker.Client
             }
             catch (Exception e)
             {
-                _logger.LogError("An unexpected error occurred while getting details by link {0}. {1}", relativeDetailsLink, e.ToString());
+                Logger.LogError("An unexpected error occurred while getting details by link {0}. {1}", relativeDetailsLink, e.ToString());
                 throw;
             }
         }
