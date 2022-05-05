@@ -16,31 +16,6 @@ namespace AngleSharp.Parser
             _logger = logger;
         }
 
-        public async Task<List<CocktailListItem>> ParseCocktailsPage(string html, CancellationToken ct)
-        {
-            var parser = new HtmlParser();
-            var document = await parser.ParseDocumentAsync(html);
-            var coctailItems = document.QuerySelectorAll(".cocktail-item");
-
-            var result = new List<CocktailListItem>();
-            foreach (var item in coctailItems)
-            {
-                ct.ThrowIfCancellationRequested();
-
-                var entry = new CocktailListItem();
-
-                entry.Id = item.GetAttribute("data-id");
-                entry.Link = item.QuerySelector("a.cocktail-item-preview").GetAttribute("href");
-                entry.Title = item.QuerySelector(".cocktail-item-name").TextContent;
-
-                _logger.LogInformation("Parsed cocktail list page item: Id:{0}, Link:{1}, Title:{2}",
-                    entry.Id, entry.Link, entry.Title);
-                result.Add(entry);
-            }
-
-            return result;
-        }
-
         public async Task<CocktailDetails> ParseCocktailDetails(string html, CancellationToken ct)
         {
             var parser = new HtmlParser();

@@ -1,6 +1,6 @@
 ﻿using AngleSharp.Parser;
-using Inshaker.Client;
-using InshakerParser.Data;
+using Oxford.Client;
+using OxfordParser.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -38,7 +38,7 @@ namespace RabbitMQConsumer
                     services.AddHttpClient();
 
                     services.AddHostedService<QueueWorker>();
-                    services.AddSingleton<InshakerClient>();
+                    services.AddSingleton<OxfordClient>();
                     services.AddSingleton<AngleSharpParser>();
                     services.AddSingleton<MongoConnection>();
                 });

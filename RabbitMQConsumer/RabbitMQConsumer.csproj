@@ -15,8 +15,8 @@
 	
 	<ItemGroup>
 		<ProjectReference Include="..\AngleSharpParser\AngleSharp.Parser.csproj" />
-		<ProjectReference Include="..\Inshaker.Client\Inshaker.Client.csproj" />
-		<ProjectReference Include="..\InshakerParser.Data\InshakerParser.Data.csproj" />
+		<ProjectReference Include="..\Oxford.Client\Oxford.Client.csproj" />
+		<ProjectReference Include="..\OxfordParser.Data\OxfordParser.Data.csproj" />
 		<ProjectReference Include="..\RabbitMQTools\RabbitMQTools.csproj" />
 	</ItemGroup>
 	

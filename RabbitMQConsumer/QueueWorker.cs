@@ -1,7 +1,7 @@
 ﻿using AngleSharp.Parser;
-using Inshaker.Client;
-using InshakerParser.Data;
-using InshakerParser.Data.Entities;
+using Oxford.Client;
+using OxfordParser.Data;
+using OxfordParser.Data.Entities;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
@@ -20,14 +20,14 @@ namespace RabbitMQConsumer
         private readonly WorkingQueueWrapper _workingQueue;
         private readonly MongoConnection _mongoConnection;
         private readonly AngleSharpParser _angleSharpParser;
-        private readonly InshakerClient _inshakerClient;
+        private readonly OxfordClient _inshakerClient;
         private readonly ILogger<QueueWorker> _logger;
 
         public QueueWorker(
             WorkingQueueWrapper workingQueue,
             MongoConnection mongoConnection,
             AngleSharpParser angleSharpParser,
-            InshakerClient inshakerClient,
+            OxfordClient inshakerClient,
             ILogger<QueueWorker> logger)
         {
             _workingQueue = workingQueue;
@@ -94,7 +94,7 @@ namespace RabbitMQConsumer
                 }).ToList();
                 cocktail.Receipt = detailsDto.Receipt;
                 cocktail.About = detailsDto.About;
-                cocktail.ImageUrl = InshakerClient.BaseUrl.TrimEnd('/') + detailsDto.RelativeImageUrl;
+                //cocktail.ImageUrl = _inshakerClient.GetImageAbsoluteUrl(detailsDto.RelativeImageUrl);
 
                 var update = Builders<Cocktail>.Update
                     .Set(x => x.Ingredients, cocktail.Ingredients)

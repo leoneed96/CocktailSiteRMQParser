@@ -6,7 +6,7 @@ services:
     image: ${DOCKER_REGISTRY-}inshakerparser
     build:
       context: .
-      dockerfile: InshakerParser/Dockerfile
+      dockerfile: OxfordParser/Dockerfile
     depends_on:
       - rabbitmq
       - mongo

@@ -6,8 +6,8 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src
 COPY ["RabbitMQConsumer/RabbitMQConsumer.csproj", "RabbitMQConsumer/"]
-COPY ["Inshaker.Client/Inshaker.Client.csproj", "Inshaker.Client/"]
-COPY ["InshakerParser.Data/InshakerParser.Data.csproj", "InshakerParser.Data/"]
+COPY ["Oxford.Client/Oxford.Client.csproj", "Oxford.Client/"]
+COPY ["OxfordParser.Data/OxfordParser.Data.csproj", "OxfordParser.Data/"]
 COPY ["RabbitMQTools/RabbitMQTools.csproj", "RabbitMQTools/"]
 COPY ["AngleSharpParser/AngleSharp.Parser.csproj", "AngleSharpParser/"]
 RUN dotnet restore "RabbitMQConsumer/RabbitMQConsumer.csproj"
