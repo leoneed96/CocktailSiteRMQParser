@@ -15,7 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\SeleniumTranslate\SeleniumTranslate.csproj" />
     <ProjectReference Include="..\AngleSharpParser\AngleSharp.Parser.csproj" />
     <ProjectReference Include="..\Oxford.Client\Oxford.Client.csproj" />
   </ItemGroup>

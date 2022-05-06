@@ -15,10 +15,6 @@ namespace Oxford.Client
         {
         }
 
-        /// <summary>
-        /// Gets html markup for page with coctails list. Order is random
-        /// </summary>
-        /// <returns></returns>
         public async Task<string> GetDetailsAsync(string path, CancellationToken ct)
         {
             using var client = HttpClientFactory.CreateClient();

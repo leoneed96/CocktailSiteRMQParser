@@ -1,17 +1,11 @@
-﻿using AngleSharp.Parser;
-using Oxford.Client;
-using OxfordParser.Data;
+﻿using OxfordParser.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using RabbitMQTools;
-using System;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace OxfordParser
 {
@@ -27,24 +21,17 @@ namespace OxfordParser
             return Host.CreateDefaultBuilder(args)
                 .ConfigureServices(services =>
                 {
-                    services.AddLogging(x => x.AddConsole());
 
                     var configuration = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json", optional: false)
-                    .Build();
+                        .SetBasePath(Directory.GetCurrentDirectory())
+                        .AddJsonFile("appsettings.json", optional: false)
+                        .Build();
 
-                    services.AddRabbitMQ(configuration);
+                    services.AddOptions();
+                    services.Configure<FileStorageOptions>(configuration.GetSection(nameof(FileStorageOptions)));
+                    services.AddLogging(x => x.AddConsole());
 
-                    services.Configure<MongoOptions>(configuration.GetSection(nameof(MongoOptions)));
-                    services.AddHttpClient();
-
-                    //services.AddHostedService<WordListWorker>();
-                    services.AddHostedService<DetailsWorker>();
-
-                    services.AddSingleton<OxfordClient>();
-                    services.AddSingleton<AngleSharpParser>();
-                    services.AddSingleton<MongoConnection>();
+                    services.AddDbContextFactory<WordsDbContext>(x => x.UseNpgsql(configuration.GetConnectionString(nameof(WordsDbContext))));
                 });
         }
     }

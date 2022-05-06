@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OxfordParser.Data.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,16 +13,6 @@ namespace AngleSharp.Parser.Models
         /// Тип слова - сущ/прил...
         /// </summary>
         public string Type { get; internal set; }
-
-        /// <summary>
-        /// Категория слова в списке 3000
-        /// </summary>
-        public WordCategory? Category3000 { get; internal set; }
-
-        /// <summary>
-        /// Категория слова в списке 5000
-        /// </summary>
-        public WordCategory? Category5000 { get; internal set; }
 
         /// <summary>
         /// Слово
@@ -44,13 +35,5 @@ namespace AngleSharp.Parser.Models
         public string AmericanSoundLink { get; internal set; }
     }
 
-    public enum WordCategory
-    {
-        a1,
-        a2,
-        b1,
-        b2,
-        c1,
-        c2
-    }
+    
 }
