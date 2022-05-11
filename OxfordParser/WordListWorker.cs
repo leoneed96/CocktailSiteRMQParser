@@ -1,114 +1,144 @@
-﻿//using AngleSharp.Parser;
-//using Oxford.Client;
-//using OxfordParser.Data;
-//using OxfordParser.Data.Entities;
-//using Microsoft.Extensions.Hosting;
-//using Microsoft.Extensions.Logging;
-//using Microsoft.Extensions.Options;
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Threading;
-//using System.Threading.Tasks;
-//using MongoDB.Driver.Linq;
-//using MongoDB.Driver;
-//using Oxford.Client.Exceptions;
-//using System.Collections.Concurrent;
+﻿using AngleSharp.Parser;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Oxford.Client;
+using OxfordParser.Data;
+using OxfordParser.Services;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
-//namespace OxfordParser
-//{
-//    public class WordListWorker : BackgroundService
-//    {
-//        private readonly ILogger<WordListWorker> _logger;
-//        private readonly AngleSharpParser _parser;
-//        private readonly MongoConnection _mongoConnection;
-//        private int _currentPage = 0;
-//        private readonly ConcurrentBag<int> _failedPages = new ConcurrentBag<int>();
-//        public WordListWorker(
-//            ILogger<WordListWorker> logger,
-//            OxfordClient inshakerClient,
-//            AngleSharpParser parser, 
-//            MongoConnection mongoConnection)
-//        {
-//            _logger = logger;
-//            _parser = parser;
-//            _mongoConnection = mongoConnection;
-//        }
-//        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-//        {
-//            var workersCount = 5;
-//            _logger.LogInformation("Worker started with ParallelWorkersCount: {0}", workersCount);
-//            await ProcessCocktailPages(workersCount, stoppingToken);
-//        }
-//        public override Task StopAsync(CancellationToken cancellationToken)
-//        {
-//            _logger.LogInformation("Worker is shutting down");
+namespace OxfordParser
+{
+    public class WordListWorker : BackgroundService
+    {
+        private readonly ILogger<WordListWorker> _logger;
+        private readonly IDbContextFactory<WordsDbContext> _dbContextFactory;
+        private readonly FileStorageService _fileStorageService;
+        private readonly WordDetailsParser _wordDetailsParser;
+        private readonly WordListPageParser _wordListPageParser;
+        private readonly OxfordClient _oxfordClient;
+        private HashSet<WordEntry> _wordEntries;
+        public WordListWorker(
+            ILogger<WordListWorker> logger,
+            IDbContextFactory<WordsDbContext> dbContextFactory,
+            FileStorageService fileStorageService,
+            WordDetailsParser wordDetailsParser,
+            WordListPageParser wordListPageParser,
+            OxfordClient oxfordClient)
+        {
+            _logger = logger;
+            _dbContextFactory = dbContextFactory;
+            _fileStorageService = fileStorageService;
+            _wordDetailsParser = wordDetailsParser;
+            _wordListPageParser = wordListPageParser;
+            _oxfordClient = oxfordClient;
+        }
 
-//            return base.StopAsync(cancellationToken);
-//        }
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            _logger.LogInformation("Worker started");
+            foreach (var item in Directory.GetFiles("Lists", "*.html"))
+            {
+                if (stoppingToken.IsCancellationRequested)
+                {
+                    _logger.LogInformation("Cancellation requested, stopping files processing");
+                    break;
+                }
 
-//        private async Task ProcessCocktailPages(int parallelWorkers, CancellationToken cancellationToken)
-//        {
-//            var tasks = new List<Task>();
-//            for (int i = 0; i < parallelWorkers; i++)
-//            {
-//                var page = _currentPage;
-//                tasks.Add(ProcessPageAsync(page, cancellationToken));
-//                _currentPage++;
-//            }
+                _logger.LogInformation("Working with list {0}", item);
+                using(var dbContext = _dbContextFactory.CreateDbContext())
+                {
+                    _wordEntries = dbContext.Words.AsNoTracking().Select(x => new WordEntry()
+                    {
+                        Text = x.Text,
+                        Type = x.WordType.NameEng
+                    }).ToHashSet();
+                }
+                await ProcessList(File.ReadAllText(item), stoppingToken);
+            }
 
-//            try
-//            {
-//                await Task.WhenAll(tasks);
-//            }
-//            catch (EmptyResponseException)
-//            {
-//                _logger.LogInformation("Worker finished");
-//                return;
-//            }
-//            await ProcessCocktailPages(parallelWorkers, cancellationToken);
-//        }
+            _logger.LogInformation("Worker finished");
+        }
 
-//        private async Task ProcessPageAsync(int page, CancellationToken cancellationToken)
-//        {
-//            try
-//            {
-//                var pageHtml = await _inshakerClient.GetPageAsync(page, cancellationToken);
-//                var pageItems = await _parser.ParseCocktailsPage(pageHtml, cancellationToken);
+        private async Task ProcessList(string listHtml, CancellationToken cancellationToken)
+        {
+            foreach (var item in _wordListPageParser.GetWordListItems(listHtml, cancellationToken))
+            {
+                try
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        _logger.LogInformation("Cancellation requested, stopping item processing");
+                        break;
+                    }
 
-//                var query = _mongoConnection.GetQuery<Cocktail>();
-//                var collection = _mongoConnection.GetCollection<Cocktail>();
+                    var entry = new WordEntry()
+                    {
+                        Text = item.WordText,
+                        Type = item.Type
+                    };
+                    if (_wordEntries.Contains(entry))
+                    {
+                        _logger.LogInformation("Item {0} already exists in database, skipping", item.WordText);
+                        continue;
+                    }
 
-//                foreach (var item in pageItems)
-//                {
-//                    cancellationToken.ThrowIfCancellationRequested();
+                    _logger.LogInformation("Processing list item {0}", item.WordText);
+                    using var dbContext = _dbContextFactory.CreateDbContext();
+                    
+                    if (await WordsRepository.ExistsAsync(dbContext, item))
+                    {
+                        _logger.LogInformation("Item {0} already exists in database, skipping", item.WordText);
+                        continue;
+                    }
 
-//                    var itemExists = await query.AnyAsync(x => x.Id == item.Id);
-//                    if (itemExists)
-//                        continue;
+                    using var transaction = dbContext.Database.BeginTransaction(System.Data.IsolationLevel.ReadUncommitted);
 
-//                    await collection.InsertOneAsync(new Cocktail()
-//                    {
-//                        Id = item.Id,
-//                        Processed = false,
-//                        RelativeDetailsUrl = item.Link,
-//                        Title = item.Title
-//                    });
-//                }
-//            }
-//            catch (EmptyCocktailListPageException)
-//            {
-//                throw;
-//            }
-//            catch (Exception e)
-//            {
-//                _logger.LogError(e, "Page processing failed with exception");
-//                _failedPages.Add(page);
-//            }
+                    var detailsHtml = await _oxfordClient.GetDetailsAsync(item.DetailsLink, cancellationToken);
+                    var itemDetails = await _wordDetailsParser.GetWordDetails(detailsHtml);
 
-//        }
+                    if (!_fileStorageService.TryGetExistedSoundPath(item.WordText, VoiceType.UK, out var ukPath))
+                    {
+                        if (!string.IsNullOrEmpty(item.UKSoundLink))
+                        {
+                            var ukFile = await _oxfordClient.GetSoundSteamAsync(item.UKSoundLink, cancellationToken);
+                            ukPath = await _fileStorageService.SaveSoundAsync(item.WordText, ukFile, VoiceType.UK);
+                        }
+                    }
 
-       
-//    }
-//}
+                    if (!_fileStorageService.TryGetExistedSoundPath(item.WordText, VoiceType.US, out var usPath))
+                    {
+                        if (!string.IsNullOrEmpty(item.AmericanSoundLink))
+                        {
+                            var usFile = await _oxfordClient.GetSoundSteamAsync(item.AmericanSoundLink, cancellationToken);
+                            usPath = await _fileStorageService.SaveSoundAsync(item.WordText, usFile, VoiceType.US);
+                        }
+                    }
+
+                    var selectedUsages = WordUsagesSelector.SelectUsagesFromDetails(itemDetails.Usages, 5);
+                    var wordType = await WordsRepository.GetOrAddWordTypeAsync(dbContext, item.Type);
+                    var word = await WordsRepository.CreateWordAsync(dbContext, item, itemDetails, wordType, ukPath, usPath, selectedUsages);
+
+                    transaction.Commit();
+                }
+                catch(Exception e)
+                {
+                    _logger.LogCritical(e, "An error occured while processing word {0}", item.WordText);
+                    Console.Beep();
+                    continue;
+                }
+            }
+        }
+
+        private struct WordEntry
+        {
+            public string Text { get; set; }
+            public string Type { get; set; }
+        }
+    }
+}

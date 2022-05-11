@@ -4,12 +4,13 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace Oxford.Client
 {
     public class OxfordClient: WebClientBase
     {
-        public override string BaseUrl => "https://www.oxfordlearnersdictionaries.com/";
+        public static string BaseUrl => "https://www.oxfordlearnersdictionaries.com/";
         public OxfordClient(IHttpClientFactory httpClientFactory, 
             ILogger<OxfordClient> logger): base(httpClientFactory, logger)
         {
@@ -20,7 +21,7 @@ namespace Oxford.Client
             using var client = HttpClientFactory.CreateClient();
             try
             {
-                var response = await client.GetAsync(GetDetailsUrl(path), ct);
+                var response = await client.GetAsync(GetFullUrl(path), ct);
                 var content = await response.Content.ReadAsStringAsync();
                 if (content.Length == 0)
                     throw new EmptyResponseException();
@@ -39,6 +40,28 @@ namespace Oxford.Client
                 throw;
             }
         }
-        private string GetDetailsUrl(string relativeLink) => $"{BaseUrl}{relativeLink}";
+
+        public async Task<Stream> GetSoundSteamAsync(string path, CancellationToken ct)
+        {
+            using var client = HttpClientFactory.CreateClient();
+            try
+            {
+                var response = await client.GetAsync(GetFullUrl(path), ct);
+                if (!response.IsSuccessStatusCode)
+                {
+                    Logger.LogError("Http request for file finished with bad status code. Code={0}",
+                        response.StatusCode);
+
+                    throw new Exception();
+                }
+                return await response.Content.ReadAsStreamAsync(ct);
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "An unexpected error occurred while requesting details");
+                throw;
+            }
+        }
+        private static string GetFullUrl(string relativeUrl) => $"{BaseUrl}{relativeUrl}";
     }
 }

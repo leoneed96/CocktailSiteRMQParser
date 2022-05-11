@@ -32,11 +32,11 @@ namespace AngleSharp.Parser
 
             // check this
             if (headword.GetAttribute("ox3000") == "y")
-                result.SpecialWordList &= SpecialWordList.Oxford3000;
+                result.Categories.Add("Oxford 3000");
             if (headword.GetAttribute("ox5000") == "y")
-                result.SpecialWordList &= SpecialWordList.Oxford5000;
+                result.Categories.Add("Oxford 5000");
 
-            // Если есть уровень слова вне контекста категории
+            // Если есть уровень слова вне контекста категории - из списка Ox3/5
             SetWordLevelBySymbols(document, result);
 
 

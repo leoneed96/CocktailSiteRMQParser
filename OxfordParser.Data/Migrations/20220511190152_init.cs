@@ -8,35 +8,36 @@ namespace OxfordParser.Data.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "WordCategory",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
-                    PicturePath = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_WordCategory", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "WordType",
+                name: "WordCategories",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     NameEng = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
-                    NameRu = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false)
+                    NameRu = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
+                    PicturePath = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_WordType", x => x.Id);
+                    table.PrimaryKey("PK_WordCategories", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Word",
+                name: "WordTypes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    NameEng = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    NameRu = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WordTypes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Words",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -46,16 +47,15 @@ namespace OxfordParser.Data.Migrations
                     SoundPathUS = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
                     WordLevel = table.Column<int>(type: "integer", nullable: false),
                     PicturePath = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: true),
-                    WordTypeId = table.Column<int>(type: "integer", nullable: false),
-                    Processed = table.Column<bool>(type: "boolean", nullable: false)
+                    WordTypeId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Word", x => x.Id);
+                    table.PrimaryKey("PK_Words", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Word_WordType_WordTypeId",
+                        name: "FK_Words_WordTypes_WordTypeId",
                         column: x => x.WordTypeId,
-                        principalTable: "WordType",
+                        principalTable: "WordTypes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -71,44 +71,46 @@ namespace OxfordParser.Data.Migrations
                 {
                     table.PrimaryKey("PK_WordAndWordCategory", x => new { x.CategoriesId, x.WordsId });
                     table.ForeignKey(
-                        name: "FK_WordAndWordCategory_Word_WordsId",
-                        column: x => x.WordsId,
-                        principalTable: "Word",
+                        name: "FK_WordAndWordCategory_WordCategories_CategoriesId",
+                        column: x => x.CategoriesId,
+                        principalTable: "WordCategories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_WordAndWordCategory_WordCategory_CategoriesId",
-                        column: x => x.CategoriesId,
-                        principalTable: "WordCategory",
+                        name: "FK_WordAndWordCategory_Words_WordsId",
+                        column: x => x.WordsId,
+                        principalTable: "Words",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "WordUsage",
+                name: "WordUsages",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Text = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: false),
                     Comment = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: true),
-                    WordId = table.Column<int>(type: "integer", nullable: false)
+                    WordId = table.Column<int>(type: "integer", nullable: false),
+                    WordCategoryId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_WordUsage", x => x.Id);
+                    table.PrimaryKey("PK_WordUsages", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_WordUsage_Word_WordId",
+                        name: "FK_WordUsages_WordCategories_WordCategoryId",
+                        column: x => x.WordCategoryId,
+                        principalTable: "WordCategories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_WordUsages_Words_WordId",
                         column: x => x.WordId,
-                        principalTable: "Word",
+                        principalTable: "Words",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Word_WordTypeId",
-                table: "Word",
-                column: "WordTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_WordAndWordCategory_WordsId",
@@ -116,8 +118,18 @@ namespace OxfordParser.Data.Migrations
                 column: "WordsId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WordUsage_WordId",
-                table: "WordUsage",
+                name: "IX_Words_WordTypeId",
+                table: "Words",
+                column: "WordTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WordUsages_WordCategoryId",
+                table: "WordUsages",
+                column: "WordCategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WordUsages_WordId",
+                table: "WordUsages",
                 column: "WordId");
         }
 
@@ -127,16 +139,16 @@ namespace OxfordParser.Data.Migrations
                 name: "WordAndWordCategory");
 
             migrationBuilder.DropTable(
-                name: "WordUsage");
+                name: "WordUsages");
 
             migrationBuilder.DropTable(
-                name: "WordCategory");
+                name: "WordCategories");
 
             migrationBuilder.DropTable(
-                name: "Word");
+                name: "Words");
 
             migrationBuilder.DropTable(
-                name: "WordType");
+                name: "WordTypes");
         }
     }
 }

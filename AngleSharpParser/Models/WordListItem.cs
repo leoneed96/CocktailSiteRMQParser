@@ -1,9 +1,4 @@
 ﻿using OxfordParser.Data.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AngleSharp.Parser.Models
 {
@@ -18,6 +13,11 @@ namespace AngleSharp.Parser.Models
         /// Слово
         /// </summary>
         public string WordText { get; internal set; }
+
+        /// <summary>
+        /// Категория слова
+        /// </summary>
+        public WordLevel WordLevel { get; internal set; }
 
         /// <summary>
         /// Ссылка на детальную информацию

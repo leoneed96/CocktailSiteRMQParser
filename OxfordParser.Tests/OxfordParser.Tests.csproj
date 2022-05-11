@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\AngleSharpParser\AngleSharp.Parser.csproj" />
     <ProjectReference Include="..\Oxford.Client\Oxford.Client.csproj" />
+    <ProjectReference Include="..\OxfordParser\OxfordParser.csproj" />
   </ItemGroup>
 
   <ItemGroup>

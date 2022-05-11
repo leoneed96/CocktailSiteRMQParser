@@ -18,7 +18,5 @@ namespace Oxford.Client
             HttpClientFactory = httpClientFactory;
             Logger = logger;
         }
-
-        public abstract string BaseUrl { get; }
     }
 }

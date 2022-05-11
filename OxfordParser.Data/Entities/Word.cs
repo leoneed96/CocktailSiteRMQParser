@@ -13,11 +13,9 @@ namespace OxfordParser.Data.Entities
         public string Text { get; set; }
 
         [MaxLength(512)]
-        [Required]
         public string SoundPathUK { get; set; }
 
         [MaxLength(512)]
-        [Required]
         public string SoundPathUS { get; set; }
 
         public WordLevel WordLevel { get; set; }
@@ -31,7 +29,6 @@ namespace OxfordParser.Data.Entities
 
         public ICollection<WordUsage> Usages { get; set; } = new List<WordUsage>();
 
-        public ICollection<WordCategory> Categories { get; set; }
-        public bool Processed { get; set; }
+        public ICollection<WordCategory> Categories { get; set; } = new List<WordCategory>();
     }
 }

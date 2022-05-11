@@ -12,12 +12,4 @@ namespace OxfordParser.Data.Entities
         c1,
         c2
     }
-
-    [Flags]
-    public enum SpecialWordList
-    {
-        None = 0,
-        Oxford3000 = 2,
-        Oxford5000 = 4
-    }
 }

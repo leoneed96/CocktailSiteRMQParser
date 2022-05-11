@@ -6,6 +6,10 @@ using Microsoft.Extensions.Logging;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
+using OxfordParser.Services;
+using AngleSharp.Parser;
+using Oxford.Client;
 
 namespace OxfordParser
 {
@@ -29,9 +33,21 @@ namespace OxfordParser
 
                     services.AddOptions();
                     services.Configure<FileStorageOptions>(configuration.GetSection(nameof(FileStorageOptions)));
-                    services.AddLogging(x => x.AddConsole());
 
+                    var loggingConfig = new LoggerConfiguration()
+                        .WriteTo.Console(restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information)
+                        .WriteTo.File("log.txt", restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Error);
+
+                    services.AddLogging(x => x.AddSerilog(loggingConfig.CreateLogger() , dispose: true));
                     services.AddDbContextFactory<WordsDbContext>(x => x.UseNpgsql(configuration.GetConnectionString(nameof(WordsDbContext))));
+                    services.AddHttpClient();
+
+                    services.AddSingleton<FileStorageService>();
+                    services.AddSingleton<WordListPageParser>();
+                    services.AddSingleton<WordDetailsParser>();
+                    services.AddSingleton<OxfordClient>();
+
+                    services.AddHostedService<WordListWorker>();
                 });
         }
     }

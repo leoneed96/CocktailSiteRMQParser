@@ -12,7 +12,6 @@ namespace OxfordParser.Data.Entities
         public string NameEng { get; set; }
 
         [MaxLength(128)]
-        [Required]
         public string NameRu { get; set; }
     }
 }

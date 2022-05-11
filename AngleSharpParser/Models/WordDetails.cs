@@ -15,8 +15,6 @@ namespace AngleSharp.Parser.Models
 
         public WordLevel WordLevel { get; set; }
 
-        public SpecialWordList SpecialWordList { get; set; }
-
         public List<string> Categories { get; set; } = new List<string>();
     }
 
@@ -24,6 +22,7 @@ namespace AngleSharp.Parser.Models
     {
         // Sports: ball and racket sports
         public string? CategoryName { get; set; }
+
         public string Text { get; set; } = default!;
     }
 }
